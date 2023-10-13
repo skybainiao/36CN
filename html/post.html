@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.gstatic.com/firebasejs/10.1.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.1.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.1.0/firebase-database-compat.js"></script>
+
+  <title>发布信息</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin-top: 2rem;
+      margin-right: 3rem;
+      margin-left: 2rem;
+    }
+
+    form {
+      width: 100%;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    input[type="file"] {
+      margin-bottom: 20px;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      background-color: #007BFF;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    #loading-icon {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+      border: 5px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 5px solid #007BFF;
+      width: 20px;
+      height: 20px;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+
+    #feedback-container {
+      display: none;
+    }
+
+    select {
+      width: 106%; /* 使其与text对齐 */
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      appearance: none; /* 去除默认外观 */
+      background-color: white;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="black"><path d="M2.646 4.646a.5.5 0 01.708 0L6 7.293l2.646-2.647a.5.5 0 11.708.708l-3 3a.5.5 0 01-.708 0l-3-3a.5.5 0 010-.708z"/></svg>');
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 12px 12px;
+    }
+
+    select:hover, select:focus {
+      border-color: #007BFF;
+    }
+
+    /* The modal (background) */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6); /* Black with a bit of opacity */
+      overflow-y: auto; /* Enable scrolling */
+    }
+
+    /* Modal content */
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto; /* 5% from the top and centered */
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%; /* Could be more or less, depending on screen size */
+      max-height: 80vh;  /* 视口高度的80% */
+      overflow-y: scroll;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover, .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .city-btn {
+      margin: 5px;
+      padding: 8px 15px;
+      cursor: pointer;
+      background-color: #007BFF;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    .city-btn:hover {
+      background-color: #0056b3;
+    }
+
+    h2 {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+      margin-top: 20px;
+    }
+
+    h3 {
+      margin-left: 10px;
+    }
+
+    /* 为星星添加些样式 */
+    .star {
+      cursor: pointer;
+      font-size: 24px;
+      padding: 1px;
+      color: gold;
+    }
+
+  </style>
+</head>
+
+<body>
+<a href="https://skybainiao.github.io/EURest/" style="font-size: 18px;">返回主页</a>
+<h1>发布信息</h1>
+
+
+<div id="feedback-container">
+  <span id="feedback">上传中...</span><div id="loading-icon"></div>
+</div>
+
+<form action="/path/to/server" method="post" enctype="multipart/form-data">
+  <label for="title">标题:</label>
+  <input type="text" id="title" name="title" required>
+
+  <label for="storeName">名称(店铺,酒店,景点):</label>
+  <input type="text" id="storeName" name="storeName" required>
+
+  <label for="storeType">种类:
+    <select id="storeType" name="storeType" required>
+      <option value="饭店">饭店</option>
+      <option value="向导">向导</option>
+      <option value="交通">交通</option>
+      <option value="景点">景点</option>
+      <option value="民宿">民宿</option>
+    </select>
+  </label>
+
+  <label>城市:
+    <button type="button" id="chooseCity">选择城市</button>
+    <span id="chosenCity"></span>
+    <input type="hidden" id="address" name="address">
+  </label>
+  <br>
+
+
+  <label for="introduction">介绍(具体地址可写在这里):</label>
+  <textarea id="introduction" name="introduction" rows="4" required></textarea>
+
+  <label for="phoneNumber">联系电话:</label>
+  <input type="tel" id="phoneNumber" name="phoneNumber" required>
+
+  <label for="ratingValue">评分:</label>
+  <div id="rating-container">
+    <span class="star" data-value="1">☆</span>
+    <span class="star" data-value="2">☆</span>
+    <span class="star" data-value="3">☆</span>
+    <span class="star" data-value="4">☆</span>
+    <span class="star" data-value="5">☆</span>
+    <span class="star" data-value="6">☆</span>
+    <span class="star" data-value="7">☆</span>
+    <span class="star" data-value="8">☆</span>
+    <span class="star" data-value="9">☆</span>
+    <span class="star" data-value="10">☆</span>
+    <input type="hidden" id="ratingValue" name="ratingValue" value="0">
+  </div>
+  <br>
+
+
+  <label for="images">图片 (可以选择多张):</label>
+  <input type="file" id="images" name="images" multiple accept="image/*" required>
+
+  <button id="submitBtn" type="submit">发布</button>
+</form>
+
+<div id="cityModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+
+    <h2 style="color: #167e7e">北欧</h2>
+
+    <h3 style="color: #167e7e">冰岛</h3>
+    <button class="city-btn">首都全境</button>
+    <button class="city-btn">冰岛南</button>
+    <button class="city-btn">冰岛西</button>
+    <button class="city-btn">冰岛东</button>
+    <button class="city-btn">冰岛北</button>
+
+    <h3 style="color: #167e7e">瑞典</h3>
+    <button class="city-btn">斯德哥尔摩</button>
+    <button class="city-btn">哥德堡</button>
+    <button class="city-btn">马尔默</button>
+    <button class="city-btn">乌普萨拉</button>
+
+    <h3 style="color: #167e7e">挪威</h3>
+    <button class="city-btn">奥斯陆</button>
+    <button class="city-btn">卑尔根</button>
+    <button class="city-btn">斯塔万格</button>
+    <button class="city-btn">特隆赫姆</button>
+
+    <h3 style="color: #167e7e">丹麦</h3>
+    <button class="city-btn">哥本哈根</button>
+    <button class="city-btn">奥胡斯</button>
+    <button class="city-btn">奥尔堡</button>
+    <button class="city-btn">奥登塞</button>
+
+    <h3 style="color: #167e7e">芬兰</h3>
+    <button class="city-btn">赫尔辛基</button>
+    <button class="city-btn">坦佩雷</button>
+    <button class="city-btn">图尔库</button>
+    <button class="city-btn">瓦萨</button>
+
+    <h2 style="color: #167e7e">东欧</h2>
+
+    <h3 style="color: #167e7e">俄罗斯</h3>
+    <button class="city-btn">莫斯科</button>
+    <button class="city-btn">圣彼得堡</button>
+
+    <h3 style="color: #167e7e">波兰</h3>
+    <button class="city-btn">华沙</button>
+    <button class="city-btn">克拉科夫</button>
+
+    <h3 style="color: #167e7e">捷克</h3>
+    <button class="city-btn">布拉格</button>
+    <button class="city-btn">布尔诺</button>
+    <button class="city-btn">奥斯特拉瓦</button>
+
+    <h3 style="color: #167e7e">匈牙利</h3>
+    <button class="city-btn">布达佩斯</button>
+    <button class="city-btn">德布勒森</button>
+    <button class="city-btn">塞格德</button>
+
+    <h2 style="color: #167e7e">西欧</h2>
+
+    <h3 style="color: #167e7e">法国</h3>
+    <button class="city-btn">巴黎</button>
+    <button class="city-btn">里昂</button>
+    <button class="city-btn">马赛</button>
+    <button class="city-btn">尼斯</button>
+
+    <h3 style="color: #167e7e">德国</h3>
+    <button class="city-btn">柏林</button>
+    <button class="city-btn">慕尼黑</button>
+    <button class="city-btn">法兰克福</button>
+    <button class="city-btn">汉堡</button>
+
+    <h3 style="color: #167e7e">英国</h3>
+    <button class="city-btn">伦敦</button>
+    <button class="city-btn">爱丁堡</button>
+
+
+    <h3 style="color: #167e7e">荷兰</h3>
+    <button class="city-btn">阿姆斯特丹</button>
+
+    <h3 style="color: #167e7e">比利时</h3>
+    <button class="city-btn">布鲁塞尔</button>
+
+    <h2 style="color: #167e7e">南欧</h2>
+
+    <h3 style="color: #167e7e">西班牙</h3>
+    <button class="city-btn">马德里</button>
+    <button class="city-btn">巴塞罗那</button>
+    <button class="city-btn">瓦伦西亚</button>
+    <button class="city-btn">塞维利亚</button>
+
+    <h3 style="color: #167e7e">意大利</h3>
+    <button class="city-btn">罗马</button>
+    <button class="city-btn">米兰</button>
+    <button class="city-btn">佛罗伦萨</button>
+    <button class="city-btn">那不勒斯</button>
+
+    <h3 style="color: #167e7e">葡萄牙</h3>
+    <button class="city-btn">里斯本</button>
+
+    <h3 style="color: #167e7e">希腊</h3>
+    <button class="city-btn">雅典</button>
+
+    <!-- ...以此类推，你可以继续添加其他国家的城市 -->
+  </div>
+</div>
+
+
+<script type="module">
+  const firebaseConfig = {
+    apiKey: "AIzaSyABXKTeI2T16mETkhYohvu4Y1X20hvL3cU",
+    authDomain: "eufun-f0a72.firebaseapp.com",
+    databaseURL: "https://eufun-f0a72-default-rtdb.europe-west1.firebasedatabase.app/",
+    projectId: "eufun-f0a72",
+    storageBucket: "eufun-f0a72.appspot.com",
+    messagingSenderId: "1041084911229",
+    appId: "1:1041084911229:web:4df4ec093dcf32b2696b14",
+    measurementId: "G-PQ3K5KZ2NJ"
+  };
+  firebase.initializeApp(firebaseConfig);
+
+
+
+  window.onload = function() {
+    const chooseCityButton = document.getElementById('chooseCity');
+    const chosenCitySpan = document.getElementById('chosenCity');
+    const addressInput = document.getElementById('address');
+    const cityModal = document.getElementById('cityModal');
+    const cityButtons = document.querySelectorAll('.city-btn');
+    const closeModal = document.querySelector('.close');
+
+    chooseCityButton.addEventListener('click', function() {
+      cityModal.style.display = 'block';
+    });
+
+    closeModal.addEventListener('click', function() {
+      cityModal.style.display = 'none';
+    });
+
+    cityButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        chosenCitySpan.textContent = this.textContent;
+        addressInput.value = this.textContent;
+        cityModal.style.display = 'none';
+      });
+    });
+  };
+
+  // 获取username
+  let username = localStorage.getItem("username");
+  if (!username) {
+    username = prompt("请输入您的用户名:");
+    localStorage.setItem("username", username);
+  }
+
+  let currentPostIdRef = firebase.database().ref("currentPostId");
+
+  function getNewPostId() {
+    return new Promise((resolve, reject) => {
+      currentPostIdRef.transaction(currentId => {
+        if (currentId === null) {
+          return 1; // 如果是第一次上传，则从1开始
+        }
+        return currentId + 1; // 否则加1
+      }, (error, committed, snapshot) => {
+        if (error) {
+          reject(error);
+        } else if (!committed) {
+          reject(new Error("Transaction not committed"));
+        } else {
+          resolve(snapshot.val());
+        }
+      });
+    });
+  }
+
+  const stars = document.querySelectorAll("#rating-container .star");
+
+  stars.forEach(star => {
+    star.addEventListener("click", function() {
+      let value = parseInt(this.getAttribute("data-value"));
+
+      // 更新隐藏的input字段，以便可以将其保存到数据库
+      document.getElementById("ratingValue").value = value;
+
+      // 更新UI以显示用户选择的星星数
+      for(let i = 0; i < stars.length; i++) {
+        if (i < value) {
+          stars[i].textContent = "★";
+        } else {
+          stars[i].textContent = "☆";
+        }
+      }
+    });
+  });
+
+
+
+
+  function showLoading() {
+    document.getElementById("feedback-container").style.display = "inline";
+  }
+
+  function hideLoading() {
+    document.getElementById("feedback-container").style.display = "none";
+  }
+
+
+  function showFeedback(message, isSuccess = true) {
+    const feedbackEl = document.getElementById("feedback");
+    const loadingIcon = document.getElementById("loading-icon");
+    feedbackEl.innerHTML = message;
+    feedbackEl.style.color = isSuccess ? "green" : "red";
+    loadingIcon.style.display = "none";  // Hide the loading icon
+    document.getElementById("feedback-container").style.display = "inline";  // Show feedback container
+  }
+
+  function uploadData(postId) {
+    return new Promise((resolve, reject) => {
+      const db = firebase.database().ref("shopDetails");
+
+      const title = document.getElementById("title").value;
+      const shopName = document.getElementById("storeName").value;
+      const address = document.getElementById("address").value;
+      const description = document.getElementById("introduction").value;
+      const phoneNumber = document.getElementById("phoneNumber").value;
+      const storeType = document.getElementById("storeType").value;
+
+      // 使用给定的postId
+      let newPostRef = db.child(postId);
+      const rating = document.getElementById("ratingValue").value;
+
+      newPostRef.set({
+        title: title,
+        shopName: shopName,
+        city: address,
+        description: description,
+        phoneNumber: phoneNumber,
+        storeType: storeType,
+        rating: rating
+      }).then(() => {
+        console.log("数据上传成功");
+        alert("数据上传成功");
+        resolve();
+      }).catch((error) => {
+        console.error("数据上传失败:", error);
+        alert("数据上传失败:", error);
+        reject(error);
+      });
+    });
+  }
+
+  function uploadImage(file,postId) {
+    return new Promise(async (resolve, reject) => {
+      const shopName = document.getElementById("storeName").value;
+
+      const storageRef = firebase.storage().ref();
+      const imagesRef = storageRef.child(`shopImages/${shopName}/${postId}/${file.name}`);
+
+
+      imagesRef.put(file).then((snapshot) => {
+        console.log('Uploaded a blob or file!');
+        resolve();
+      }).catch((error) => {
+        console.error("图片上传失败:", error);
+        reject(error);
+      });
+    });
+  }
+
+  document.getElementById("submitBtn").addEventListener("click", async function(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    if (!checkFields()) {  // 检查所有字段，如果有任何空字段，就中断提交操作
+      return;
+    }
+    showLoading();
+
+    try {
+      const postId = await getNewPostId();  // 获取新的postId
+
+      await Promise.all([
+        uploadData(postId),
+        ...Array.from(document.getElementById("images").files).map(file => uploadImage(file, postId))  // 确保使用相同的postId
+      ]);
+
+      showFeedback("上传成功！", true);
+      resetForm();
+    } catch (error) {
+      showFeedback("上传失败，请重试。", false);
+      console.error("上传错误:", error);
+    }
+  });
+
+  function checkFields() {
+    // 获取所有需要检查的输入元素
+    const title = document.getElementById("title").value;
+    const shopName = document.getElementById("storeName").value;
+    const address = document.getElementById("address").value;
+    const description = document.getElementById("introduction").value;
+    const phoneNumber = document.getElementById("phoneNumber").value;
+    const storeType = document.getElementById("storeType").value;
+    const rating = document.getElementById("ratingValue").value;
+    const images = document.getElementById("images").files;
+
+    // 检查每个输入元素是否为空，并给出相应的提示
+    if (!title) {
+      alert("标题不能为空!");
+      return false;
+    }
+    if (!shopName) {
+      alert("店名不能为空!");
+      return false;
+    }
+    if (!address) {
+      alert("地址不能为空!");
+      return false;
+    }
+    if (!description) {
+      alert("描述不能为空!");
+      return false;
+    }
+    if (!phoneNumber) {
+      alert("电话号码不能为空!");
+      return false;
+    }
+    if (!storeType) {
+      alert("店铺类型不能为空!");
+      return false;
+    }
+    if (!rating || rating === "0") {  // 这里我们还检查评分是否为0，你可以根据需要进行调整
+      alert("评级不能为空!");
+      return false;
+    }
+    if (!images.length) {
+      alert("您必须上传至少一张图片!");
+      return false;
+    }
+
+
+    return true; // 如果所有字段都不为空，则返回true
+  }
+
+
+
+  function resetForm() {
+    // 清空文本输入框
+    document.getElementById("title").value = '';
+    document.getElementById("storeName").value = '';
+    document.getElementById("address").value = '';
+    document.getElementById("introduction").value = '';
+    document.getElementById("phoneNumber").value = '';
+
+    // 清空文件选择器
+    document.getElementById("images").value = '';
+  }
+
+
+
+</script>
+
+</body>
+
+</html>

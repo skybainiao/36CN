@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>showPost</title>
+
+  <!-- Firebase scripts -->
+  <script src="https://www.gstatic.com/firebasejs/10.1.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.1.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.1.0/firebase-storage-compat.js"></script>
+
+  <!-- Styles -->
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .post-content {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .post-details h1 {
+      margin-top: 0;
+      color: #333;
+    }
+
+    .post-details p {
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .images-slider {
+      display: flex;
+      overflow-x: auto;
+      white-space: nowrap;
+      margin-bottom: 20px;
+    }
+
+    .images-slider img {
+      margin-right: 10px;
+      max-width: 300px;
+      height: auto;
+      border-radius: 5px;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .images-slider img:hover {
+      transform: scale(1.05);
+    }
+
+    .delete-button-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    #deletePostButton {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+
+<div class="post-content">
+  <div class="images-slider">
+    <!-- Images will be populated dynamically -->
+  </div>
+
+  <div class="post-details">
+    <!-- Post details will be populated dynamically -->
+  </div>
+
+
+
+</div>
+
+<div class="delete-button-container" id="de" style='display: none'>
+  <button id="deletePostButton">删除帖子</button>
+</div>
+<!-- Firebase and other JS scripts -->
+<script>
+  let firebaseConfig = {
+    apiKey: "AIzaSyABXKTeI2T16mETkhYohvu4Y1X20hvL3cU",
+    authDomain: "eufun-f0a72.firebaseapp.com",
+    databaseURL: "https://eufun-f0a72-default-rtdb.europe-west1.firebasedatabase.app/",
+    projectId: "eufun-f0a72",
+    storageBucket: "eufun-f0a72.appspot.com",
+    messagingSenderId: "1041084911229",
+    appId: "1:1041084911229:web:4df4ec093dcf32b2696b14",
+    measurementId: "G-PQ3K5KZ2NJ"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+
+
+  let username = localStorage.getItem('username');
+  let de = document.getElementById('de');
+
+  window.onload = function() {
+    const postId = getPostIdFromURL();
+    fetchPostDetails(postId);
+
+
+    if (username==='tester' || username==='chen' || username==='idfc'){
+      de.style.display='block';
+      const deleteButton = document.getElementById('deletePostButton');
+      if (deleteButton) {
+        deleteButton.addEventListener('click', function() {
+          const postId = getPostIdFromURL();
+          if (confirm('确实要删除此帖子吗？')) {
+            deletePost(postId);
+          }
+        });
+      }
+    }
+
+  }
+
+  function deletePost(postId) {
+    const postRef = database.ref(`shopDetails/${postId}`);
+    postRef.remove()
+      .then(function() {
+        alert('帖子删除成功！');
+        showReturnHomeLink();  // 调用此方法来显示返回主页的链接
+      })
+      .catch(function(error) {
+        console.error("删除帖子时发生错误：", error);
+        alert('帖子删除失败，请稍后重试。');
+      });
+  }
+
+  function showReturnHomeLink() {
+    const content = document.querySelector('.post-content');
+    content.innerHTML = `
+    <div style="text-align: center; padding: 20px;">
+      <p>帖子已删除。</p>
+      <a href="https://skybainiao.github.io/EURest/" style="font-size: 18px;">返回主页</a>
+    </div>
+  `;
+  }
+
+
+
+
+
+  function getPostIdFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('id');
+  }
+
+  function fetchPostDetails(postId) {
+    const postRef = database.ref(`shopDetails/${postId}`);
+    postRef.once('value').then(snapshot => {
+      const post = snapshot.val();
+
+      if (!post) {
+        console.error('Post not found or is empty.');
+        return;
+      }
+
+      populatePostDetails(post);
+
+      const imageFolderPath = `shopImages/${post.shopName}/${postId}/`;
+      populateImages(imageFolderPath);
+    });
+
+
+  }
+
+  function populatePostDetails(post) {
+    const postDetailsDiv = document.querySelector('.post-details');
+    // Use post data to populate the postDetailsDiv. Example:
+    postDetailsDiv.innerHTML = `
+            <h1>${post.title}</h1>
+            <h2>${post.shopName}</h2>
+            <p>${post.description}</p>
+            <h3>城市:${post.city}</h3>
+            <h3>地址:${post.address}</h3>
+            <h3>电话:${post.phoneNumber}</h3>
+
+
+            <!-- add other post details -->
+            `;
+  }
+
+  function populateImages(imageFolderPath) {
+    const imagesSliderDiv = document.querySelector('.images-slider');
+    const imageFolderRef = firebase.storage().ref(imageFolderPath);
+
+    imageFolderRef.listAll().then(result => {
+      result.items.forEach(imageRef => {
+        imageRef.getDownloadURL().then(url => {
+          const img = document.createElement('img');
+          img.src = url;
+
+          imagesSliderDiv.appendChild(img);
+        });
+      });
+    });
+  }
+</script>
+</body>
+
+</html>
