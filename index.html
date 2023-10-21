@@ -68,57 +68,7 @@
     }
 
 
-    /* The modal (background) */
-    .modal {
-      display: none; /* Hidden by default */
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.6); /* Black with a bit of opacity */
-      overflow-y: auto; /* Enable scrolling */
-    }
 
-    /* Modal content */
-    .modal-content {
-      background-color: #fefefe;
-      margin: 5% auto; /* 5% from the top and centered */
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%; /* Could be more or less, depending on screen size */
-      max-height: 80vh;  /* 视口高度的80% */
-      overflow-y: scroll;
-    }
-
-    .close {
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .close:hover, .close:focus {
-      color: black;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .city-btn {
-      margin: 5px;
-      padding: 8px 15px;
-      cursor: pointer;
-      background-color: #007BFF;
-      border: none;
-      color: white;
-      border-radius: 4px;
-      transition: background-color 0.3s ease;
-    }
-
-    .city-btn:hover {
-      background-color: #0056b3;
-    }
 
     h2 {
       border-bottom: 1px solid #ddd;
@@ -205,7 +155,7 @@
       transition: background-color 0.3s ease;
       font-size: 1.1em; /* 增大字体大小 */
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 添加阴影效果 */
-      width: 48%; /* 修改按钮宽度 */
+      width: 44%; /* 修改按钮宽度 */
     }
 
     .transparent-blue-button:hover {
@@ -243,9 +193,28 @@
     .separator-line {
       border: 0;
       border-top: 1px solid #ddd;
-      margin: 0px 0; /* 减少上下的margin使细线更靠近导航栏 */
+      margin: 0 0; /* 减少上下的margin使细线更靠近导航栏 */
     }
 
+
+
+    .grid-item {
+      height: 150px; /* 或您想要的任何其他高度 */
+      display: flex;
+      align-items: center; /* 垂直居中内容 */
+    }
+
+    .cover-wp img {
+      width: 100px; /* 或您想要的任何其他宽度 */
+      height: 100px; /* 使其成为正方形 */
+      object-fit: cover; /* 使图片始终填充其容器，而不会失真 */
+    }
+
+    .content-wrap strong,
+    .content-wrap p {
+      text-decoration: none; /* 移除横线 */
+      color: black; /* 设置文字颜色为黑色 */
+    }
 
 
 
@@ -306,7 +275,8 @@
       <!-- 按钮区域 -->
       <div class="button-container">
         <button class="transparent-blue-button">热榜</button>
-        <button class="transparent-blue-button">发布</button>
+
+        <a href="html/post.html" class="transparent-blue-button" id="upload">发布</a>
       </div>
 
       <!-- 导航栏 -->
@@ -321,15 +291,26 @@
       <hr class="separator-line">
 
 
+  <main>
+    <section class="slide-page" data-index="0">
+      <div class="header-section">
 
 
-      <!--  <div class="grid-container">
 
+
+      </div>
+
+      <div class="grid-container">
+        <!-- Grid items will be dynamically inserted here -->
         <div class="pagination">
           <button id="prevPage">上一页</button>
           <button id="nextPage">下一页</button>
         </div>
-      </div> -->
+      </div>
+
+
+    </section>
+  </main>
 
 
 
@@ -358,16 +339,16 @@
 
 
 
-  let firebaseConfig = {
-      apiKey: "AIzaSyABXKTeI2T16mETkhYohvu4Y1X20hvL3cU",
-      authDomain: "eufun-f0a72.firebaseapp.com",
-      databaseURL: "https://eufun-f0a72-default-rtdb.europe-west1.firebasedatabase.app/",
-      projectId: "eufun-f0a72",
-      storageBucket: "eufun-f0a72.appspot.com",
-      messagingSenderId: "1041084911229",
-      appId: "1:1041084911229:web:4df4ec093dcf32b2696b14",
-      measurementId: "G-PQ3K5KZ2NJ"
-    };
+  let  firebaseConfig = {
+    apiKey: "AIzaSyAi9uwdfkmHPrc9HtJCZFxFu-ppaUKa-G0",
+    authDomain: "cn-9ae7f.firebaseapp.com",
+    databaseURL: "https://cn-9ae7f-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "cn-9ae7f",
+    storageBucket: "cn-9ae7f.appspot.com",
+    messagingSenderId: "140450789584",
+    appId: "1:140450789584:web:9ce26d3b449a6db23946d5",
+    measurementId: "G-82DQRJWV33"
+  };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
@@ -375,82 +356,6 @@
       changeStatus();
       loadPosts(currentPage, null); // 初始化为 null 类别
 
-// Get the modal
-      var modal = document.getElementById('cityModal');
-
-// Get the button that opens the modal
-      var btn = document.getElementById('35');
-
-// Get the <span> element that closes the modal
-      var span = document.getElementsByClassName('close')[0];
-
-// When the user clicks the button, open the modal
-      btn.onclick = function() {
-        modal.style.display = "block";
-      }
-
-// When the user clicks on <span> (x), close the modal
-      span.onclick = function() {
-        modal.style.display = "none";
-      }
-
-// When the user clicks anywhere outside the modal, close it
-      window.onclick = function(event) {
-        if (event.target === modal) {
-          modal.style.display = "none";
-        }
-      }
-
-
-
-
-      // 为导航链接添加事件监听器
-      document.getElementById("28").addEventListener('click', function() {
-        loadPosts(currentPage, '饭店');
-      });
-
-      document.getElementById("12").addEventListener('click', function() {
-        loadPosts(currentPage, '向导');
-      });
-
-      document.getElementById("18").addEventListener('click', function() {
-        loadPosts(currentPage, '景点');
-      });
-
-      document.getElementById("14").addEventListener('click', function() {
-        loadPosts(currentPage, '民宿');
-      });
-
-      document.getElementById("35").addEventListener('click', function() {
-        loadPosts(currentPage, '城市');
-      });
-
-      document.getElementById("80").addEventListener('click', function() {
-        loadPosts(currentPage, '交通');
-      });
-
-
-      // ... 其他代码 ...
-
-// 获取所有城市按钮的引用
-      var cityButtons = document.getElementsByClassName('city-btn');
-
-// 为每个城市按钮添加事件处理器
-      for (let btn of cityButtons) {
-        btn.addEventListener('click', function() {
-          // 更新h2元素以显示所选城市
-          document.querySelector('.header-section h2').textContent = "城市: " + btn.textContent;
-
-          // 使用loadPosts方法加载与所选城市相关的帖子
-          document.getElementById('shouCity').innerHTML=btn.textContent;
-          loadPostsFromCity(currentPage, btn.textContent);  // <--- 这里是关键的调用
-
-          // 关闭模态窗口
-          modal.style.display = "none";
-        });
-      }
-
-// ... 其他代码 ...
 
 
     };
@@ -474,14 +379,6 @@
     }
 
 
-    function checkProfile() {
-      let username = localStorage.getItem('username');
-      if (username === null) {
-        window.location.href = "html/login.html";
-      } else {
-        window.location.href = "html/profile.html";
-      }
-    }
 
     let currentPage = 1;
     const postsPerPage = 4;
@@ -519,8 +416,8 @@
         let fetchImageURLPromises = [];
 
         for (let postId in posts) {
-          let shopName = posts[postId].shopName;
-          let imageFolderPath = `shopImages/${shopName}/${postId}/`;
+
+          let imageFolderPath = `shopImages/${postId}/`;
           let imageFolderRef = firebase.storage().ref(imageFolderPath);
 
           let promise = imageFolderRef.listAll().then(result => {
@@ -557,79 +454,6 @@
 
 
     }
-
-    function loadPostsFromCity(page, city) {
-      const startIndex = (page - 1) * postsPerPage;
-      const endIndex = startIndex + postsPerPage;
-
-      let query = database.ref('shopDetails');
-
-      if (city) {
-        query = query.orderByChild('city').equalTo(city);
-      }
-
-      query.once('value').then(snapshot => {
-        let allPosts = snapshot.val();
-
-        if (!allPosts) {
-          console.error("No posts retrieved from database.");
-          return;
-        }
-
-        // 排序所有帖子，并为每个帖子添加id属性
-        let sortedPostsArray = Object.entries(allPosts).map(([id, post]) => ({ ...post, id })).sort((a, b) => b.rating - a.rating);
-
-        // 从已排序的数组中获取当前页面的帖子
-        let currentPostsArray = sortedPostsArray.slice(startIndex, endIndex);
-
-        // 转换数组回对象
-        let posts = {};
-        currentPostsArray.forEach(post => {
-          posts[post.id] = post;
-        });
-
-        let fetchImageURLPromises = [];
-
-        for (let postId in posts) {
-          let shopName = posts[postId].shopName;
-          let imageFolderPath = `shopImages/${shopName}/${postId}/`;
-          let imageFolderRef = firebase.storage().ref(imageFolderPath);
-
-          let promise = imageFolderRef.listAll().then(result => {
-            if (result.items.length === 0) {
-              return null;
-            }
-            let randomImageRef = result.items[Math.floor(Math.random() * result.items.length)];
-            return randomImageRef.getDownloadURL();
-          });
-
-          fetchImageURLPromises.push(promise);
-        }
-
-        Promise.all(fetchImageURLPromises)
-          .then(imageURLs => {
-            imageURLs.forEach((imageURL, index) => {
-              let postId = Object.keys(posts)[index];
-              posts[postId].imageURL = imageURL;
-            });
-
-            populatePosts(posts);
-          })
-          .catch(error => {
-            console.error("Error fetching image URLs: ", error);
-          });
-
-      }).catch(error => {
-        console.error("Error fetching posts from database: ", error);
-      });
-
-
-
-
-
-
-    }
-
 
 
     // Updated populatePosts function
@@ -643,6 +467,8 @@
       postArray.forEach((post, index) => {
         const gridItem = document.createElement('div');
         gridItem.className = 'grid-item';
+        gridItem.style.height = '100px'; // 设置固定高度
+
 
         const anchor = document.createElement('a');
         anchor.id = `item${index + 1}`;
@@ -660,6 +486,8 @@
 
         const img = document.createElement('img');
         img.id = `img${index + 1}`;
+        img.style.width = '100px'; // 设置图片宽度
+        img.style.height = '100px'; // 设置图片高度
         if (post.imageURL) {
           img.src = post.imageURL;
         } else {
@@ -670,21 +498,14 @@
 
         const textDiv = document.createElement('div');
         textDiv.style.flexGrow = '1';
-        textDiv.style.paddingLeft = '10px';
 
         const strong = document.createElement('strong');
         strong.id = `s${index + 1}`;
         strong.innerText = post.title;
+
+        strong.style.display = 'block'; // 使其成为块级元素
+
         textDiv.appendChild(strong);
-
-        const shopNameP = document.createElement('p');
-        shopNameP.id = `time${index + 1}`;
-        shopNameP.innerText = post.shopName;
-        textDiv.appendChild(shopNameP);
-
-        const ratingP = document.createElement('p');
-        ratingP.innerText = "评分: " + post.rating;
-        textDiv.appendChild(ratingP);
 
         contentDiv.appendChild(textDiv);
         anchor.appendChild(contentDiv);
@@ -713,21 +534,6 @@
         }
       });
     }
-
-    function deletePost(postId, gridItem) {
-      // 删除firebase中的帖子
-      const postRef = database.ref('shopDetails/' + postId);
-      postRef.remove()
-        .then(function() {
-          console.log("Post deleted successfully from Firebase.");
-          // 从主页中移除帖子
-          gridItem.remove();
-        })
-        .catch(function(error) {
-          console.error("Error deleting post: ", error);
-        });
-    }
-
 
 
 
