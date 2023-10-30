@@ -192,6 +192,37 @@
 
 
   <br>
+  <label for="companyName">公司或展会名称:</label>
+  <input type="text" id="companyName" name="companyName" required>
+
+  <br>
+
+  <label for="type">种类:
+    <select id="type" name="type" required>
+      <option value="国内">国内</option>
+      <option value="海外">海外</option>
+    </select>
+  </label>
+
+
+
+  <label for="hangye">种类:
+    <select id="hangye" name="hangye" required>
+      <option value="文化娱乐">文化娱乐</option>
+      <option value="消费电商">消费电商</option>
+      <option value="汽车出行">汽车出行</option>
+      <option value="教育">教育</option>
+      <option value="金融">金融</option>
+      <option value="企业服务">企业服务</option>
+      <option value="产业升级">产业升级</option>
+      <option value="前沿技术">前沿技术</option>
+      <option value="医疗健康">医疗健康</option>
+      <option value="先进制造">先进制造</option>
+      <option value="通信/半导体">通信/半导体</option>
+      <option value="物联">物联</option>
+    </select>
+  </label>
+
 
 
   <label for="images">图片 (可以选择多张):</label>
@@ -279,14 +310,21 @@
 
       const description = document.getElementById("introduction").value;
 
+      const companyName = document.getElementById("companyName").value;
+      const type = document.getElementById("type").value;
+      const hangye = document.getElementById("hangye").value;
+
+
       // 使用给定的postId
       let newPostRef = db.child(postId);
 
 
       newPostRef.set({
         title: title,
-
+        companyName:companyName,
         description: description,
+        type:type,
+        hangye:hangye,
 
       }).then(() => {
         console.log("数据上传成功");
