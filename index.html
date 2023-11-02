@@ -525,13 +525,14 @@
 
 
 
-    // Add back the pagination
+      // Add back the pagination
       gridContainer.innerHTML += `
-    <div class="pagination">
-      <button id="prevPage">上一页</button>
-      <button id="nextPage">下一页</button>
-    </div>
-    `;
+<div class="pagination" style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 1000;">
+  <button id="prevPage" style="font-size: 14px; padding: 5px 10px; margin-right: 10px;">上一页</button>
+  <button id="nextPage" style="font-size: 14px; padding: 5px 10px;">下一页</button>
+</div>
+`;
+
 
       // Re-attach event listeners to the pagination buttons
       document.getElementById('nextPage').addEventListener('click', function() {
