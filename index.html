@@ -198,30 +198,39 @@
 
 
 
-    /* 模态框（背景） */
+    /* 模态框的基本样式 */
     .modal {
       display: none; /* 默认隐藏 */
       position: fixed; /* 固定位置 */
-      z-index: 10001; /* 位于顶层 */
+      z-index: 100; /* 置于顶层 */
       left: 0;
       top: 0;
-      width: 100%; /* 全屏宽 */
-      height: 100%; /* 全屏高 */
-      overflow: auto; /* 启用滚动条 */
-      background-color: rgb(0,0,0); /* 背景色 */
-      background-color: rgba(0,0,0,0.4); /* 背景色，带透明度 */
+      width: 100%; /* 宽度100% */
+      height: 100%; /* 高度100% */
+      overflow: auto; /* 如果需要滚动条 */
+      background-color: rgb(0,0,0); /* 背景颜色 */
+      background-color: rgba(0,0,0,0.4); /* 背景颜色，带有透明度 */
     }
 
-    /* 模态框内容 */
+    /* 模态框内容的样式 */
     .modal-content {
       background-color: #fefefe;
-      margin: 15% auto; /* 15% 从顶部和水平居中 */
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%; /* 可以根据需要调整宽度 */
+      margin: auto; /* 自动边距 */
+      padding: 40px;
+      border-radius: 10px; /* 内容框圆角 */
+      width: 90%; /* 宽度90% */
+      max-width: 500px; /* 最大宽度 */
+      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19); /* 阴影效果 */
+
+      /* 新增的居中样式 */
+      position: absolute; /* 绝对定位 */
+      top: 35%; /* 顶部50% */
+      left: 50%; /* 左边50% */
+      transform: translate(-50%, -50%); /* 向上和向左移动自身宽高的50% */
     }
 
-    /* 关闭按钮 */
+
+    /* 关闭按钮的样式 */
     .close {
       color: #aaa;
       float: right;
@@ -235,6 +244,53 @@
       text-decoration: none;
       cursor: pointer;
     }
+
+    /* 搜索输入框的样式 */
+    .search-input {
+      width: 100%; /* 宽度减去padding */
+      padding: 10px 20px;
+      margin-top: 8px;
+      display: block; /* 占满整行 */
+      border: 2px solid black; /* 边框颜色 */
+      border-radius: 20px; /* 边框圆角 */
+      box-sizing: border-box; /* 盒模型 */
+      outline: none; /* 去掉焦点时的轮廓 */
+      font-size: 16px; /* 字体大小 */
+    }
+
+    .search-input:focus {
+      border-color: #4CAF50; /* 聚焦时边框颜色 */
+    }
+
+    /* 搜索按钮的样式 */
+    .search-button {
+      width: 100%;
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      margin-top: 16px;
+      border: none;
+      border-radius: 20px; /* 按钮圆角 */
+      cursor: pointer;
+      font-size: 16px; /* 字体大小 */
+      transition: background-color 0.3s ease; /* 过渡动画 */
+    }
+
+    .search-button:hover {
+      background-color: #45a049;
+    }
+
+    /* 模态框内容的样式 */
+    .modal-content {
+      background-color: #fefefe;
+      margin: 10% auto; /* 从顶部和自动水平 */
+      padding: 40px;
+      border-radius: 10px; /* 内容框圆角 */
+      width: 90%; /* 宽度90% */
+      max-width: 500px; /* 最大宽度 */
+      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19); /* 阴影效果 */
+    }
+
 
 
 
@@ -265,14 +321,17 @@
 
 
 
-  <!-- 搜索弹窗 -->
+  <!-- 搜索模态框的HTML结构 -->
   <div id="searchModal" class="modal">
-    <div class="modal-content">
+    <!-- 模态框的内容 -->
+    <div class="modal-content" style="width: 70%">
       <span class="close">&times;</span>
-      <input type="text" id="searchInput" placeholder="输入搜索内容...">
-      <button id="doSearch">搜索</button>
+      <p>请输入搜索内容：</p>
+      <input type="text" id="searchInput" class="search-input" placeholder="搜索...">
+      <button id="doSearch" class="search-button">搜索</button>
     </div>
   </div>
+
 
 
   <div class="swiper-container" >
@@ -454,6 +513,8 @@
       query.once('value', function(snapshot) {
         let posts = snapshot.val();
         let searchResults = {};
+        let fetchImageURLPromises = []; // 用于存储所有图片URL获取的promise
+
         for (let id in posts) {
           let post = posts[id];
           // 检查每个字段是否包含搜索词
@@ -466,12 +527,28 @@
           // 如果任何一个字段包含搜索词，则添加到搜索结果
           if (isInTitle || isInIntroduction || isInCompanyName || isInType || isInHangye) {
             searchResults[id] = post;
+            // 获取图片的URL
+            let imageFolderPath = `shopImages/${id}/`;
+            let imageFolderRef = firebase.storage().ref(imageFolderPath);
+            let promise = imageFolderRef.listAll().then(result => {
+              if (result.items.length === 0) {
+                return null;
+              }
+              let randomImageRef = result.items[Math.floor(Math.random() * result.items.length)];
+              return randomImageRef.getDownloadURL();
+            });
+            fetchImageURLPromises.push(promise.then(url => { searchResults[id].imageURL = url; }));
           }
         }
-        // 调用populatePosts函数来显示搜索结果
-        populatePosts(searchResults);
+
+        // 等待所有图片URL的promise完成
+        Promise.all(fetchImageURLPromises).then(() => {
+          // 调用populatePosts函数来显示搜索结果
+          populatePosts(searchResults);
+        });
       });
     }
+
 
 
 
