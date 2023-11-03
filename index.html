@@ -198,22 +198,42 @@
 
 
 
-    .grid-item {
-      height: 150px; /* 或您想要的任何其他高度 */
-      display: flex;
-      align-items: center; /* 垂直居中内容 */
+    /* 模态框（背景） */
+    .modal {
+      display: none; /* 默认隐藏 */
+      position: fixed; /* 固定位置 */
+      z-index: 10001; /* 位于顶层 */
+      left: 0;
+      top: 0;
+      width: 100%; /* 全屏宽 */
+      height: 100%; /* 全屏高 */
+      overflow: auto; /* 启用滚动条 */
+      background-color: rgb(0,0,0); /* 背景色 */
+      background-color: rgba(0,0,0,0.4); /* 背景色，带透明度 */
     }
 
-    .cover-wp img {
-      width: 100px; /* 或您想要的任何其他宽度 */
-      height: 100px; /* 使其成为正方形 */
-      object-fit: cover; /* 使图片始终填充其容器，而不会失真 */
+    /* 模态框内容 */
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto; /* 15% 从顶部和水平居中 */
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%; /* 可以根据需要调整宽度 */
     }
 
-    .content-wrap strong,
-    .content-wrap p {
-      text-decoration: none; /* 移除横线 */
-      color: black; /* 设置文字颜色为黑色 */
+    /* 关闭按钮 */
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
     }
 
 
@@ -243,7 +263,19 @@
     </nav>
   </header>
 
-  <div class="swiper-container">
+
+
+  <!-- 搜索弹窗 -->
+  <div id="searchModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <input type="text" id="searchInput" placeholder="输入搜索内容...">
+      <button id="doSearch">搜索</button>
+    </div>
+  </div>
+
+
+  <div class="swiper-container" >
     <!-- Additional required wrapper -->
     <div class="swiper-wrapper">
       <!-- Slides -->
@@ -274,7 +306,8 @@
 
       <!-- 按钮区域 -->
       <div class="button-container">
-        <button class="transparent-blue-button" style="width: 48.2%">搜索🔍</button>
+        <!-- 搜索按钮 -->
+        <button class="transparent-blue-button" id="searchButton" style="width: 48.2%">搜索🔍</button>
 
         <a href="html/post.html" class="transparent-blue-button" id="upload" style="text-decoration: none;width: 40%">发布💻</a>
       </div>
@@ -377,6 +410,69 @@
         });
       }
     }
+
+
+    // 获取模态框元素
+    var modal = document.getElementById("searchModal");
+
+    // 获取打开模态框的按钮元素
+    var btn = document.getElementById("searchButton");
+
+    // 获取模态框上的 <span> 元素（x），用于关闭模态框
+    var span = document.getElementsByClassName("close")[0];
+
+    // 点击按钮打开模态框
+    btn.onclick = function() {
+      modal.style.display = "block";
+    }
+
+    // 点击 <span> (x), 关闭模态框
+    span.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    // 在用户点击其他地方时，关闭模态框
+    window.onclick = function(event) {
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    // 执行搜索并显示结果
+    document.getElementById('doSearch').addEventListener('click', function() {
+      var searchTerm = document.getElementById('searchInput').value;
+      searchAndDisplay(searchTerm);
+    });
+
+    function searchAndDisplay(searchTerm) {
+      // 清空当前的grid items
+      const gridContainer = document.querySelector('.grid-container');
+      gridContainer.innerHTML = '';
+
+      // 在Firebase中搜索匹配的数据
+      let query = database.ref('shopDetails');
+      query.once('value', function(snapshot) {
+        let posts = snapshot.val();
+        let searchResults = {};
+        for (let id in posts) {
+          let post = posts[id];
+          // 检查每个字段是否包含搜索词
+          let isInTitle = post.title && post.title.toLowerCase().includes(searchTerm.toLowerCase());
+          let isInIntroduction = post.introduction && post.introduction.toLowerCase().includes(searchTerm.toLowerCase());
+          let isInCompanyName = post.companyName && post.companyName.toLowerCase().includes(searchTerm.toLowerCase());
+          let isInType = post.type && post.type.toLowerCase().includes(searchTerm.toLowerCase());
+          let isInHangye = post.hangye && post.hangye.toLowerCase().includes(searchTerm.toLowerCase());
+
+          // 如果任何一个字段包含搜索词，则添加到搜索结果
+          if (isInTitle || isInIntroduction || isInCompanyName || isInType || isInHangye) {
+            searchResults[id] = post;
+          }
+        }
+        // 调用populatePosts函数来显示搜索结果
+        populatePosts(searchResults);
+      });
+    }
+
 
 
 
