@@ -77,77 +77,9 @@
       display: none;
     }
 
-    select {
-      width: 106%; /* 使其与text对齐 */
-      padding: 10px;
-      margin-top: 10px;
-      margin-bottom: 20px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-      appearance: none; /* 去除默认外观 */
-      background-color: white;
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="black"><path d="M2.646 4.646a.5.5 0 01.708 0L6 7.293l2.646-2.647a.5.5 0 11.708.708l-3 3a.5.5 0 01-.708 0l-3-3a.5.5 0 010-.708z"/></svg>');
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      background-size: 12px 12px;
-    }
 
-    select:hover, select:focus {
-      border-color: #007BFF;
-    }
 
-    /* The modal (background) */
-    .modal {
-      display: none; /* Hidden by default */
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.6); /* Black with a bit of opacity */
-      overflow-y: auto; /* Enable scrolling */
-    }
 
-    /* Modal content */
-    .modal-content {
-      background-color: #fefefe;
-      margin: 5% auto; /* 5% from the top and centered */
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%; /* Could be more or less, depending on screen size */
-      max-height: 80vh;  /* 视口高度的80% */
-      overflow-y: scroll;
-    }
-
-    .close {
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .close:hover, .close:focus {
-      color: black;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .city-btn {
-      margin: 5px;
-      padding: 8px 15px;
-      cursor: pointer;
-      background-color: #007BFF;
-      border: none;
-      color: white;
-      border-radius: 4px;
-      transition: background-color 0.3s ease;
-    }
-
-    .city-btn:hover {
-      background-color: #0056b3;
-    }
 
     h2 {
       border-bottom: 1px solid #ddd;
@@ -159,13 +91,28 @@
       margin-left: 10px;
     }
 
-    /* 为星星添加些样式 */
-    .star {
-      cursor: pointer;
-      font-size: 24px;
-      padding: 1px;
-      color: gold;
+
+
+    select {
+      width: 100%; /* 调整为所需宽度 */
+      padding: 8px; /* 增加一些内边距 */
+      border: 1px solid #ccc; /* 边框样式 */
+      border-radius: 4px; /* 轻微的圆角 */
+      background-color: white; /* 背景颜色 */
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1); /* 添加一些阴影 */
+      font-size: 16px; /* 字体大小 */
+      color: #444; /* 字体颜色 */
     }
+
+    optgroup {
+      font-weight: bold; /* 组标题加粗 */
+      margin-top: 5px; /* 组之间的间隔 */
+    }
+
+    option {
+      padding-left: 15px; /* 选项内边距 */
+    }
+
 
   </style>
 </head>
@@ -192,7 +139,7 @@
 
 
   <br>
-  <label for="companyName">公司或展会名称:</label>
+  <label for="companyName">公司或机构名称:</label>
   <input type="text" id="companyName" name="companyName" required>
 
   <br>
@@ -208,20 +155,24 @@
 
   <label for="hangye">种类:
     <select id="hangye" name="hangye" required>
-      <option value="文化娱乐">文化娱乐</option>
-      <option value="消费电商">消费电商</option>
-      <option value="汽车出行">汽车出行</option>
-      <option value="教育">教育</option>
-      <option value="金融">金融</option>
-      <option value="企业服务">企业服务</option>
-      <option value="产业升级">产业升级</option>
-      <option value="前沿技术">前沿技术</option>
-      <option value="医疗健康">医疗健康</option>
-      <option value="先进制造">先进制造</option>
-      <option value="通信/半导体">通信/半导体</option>
-      <option value="物联">物联</option>
+      <optgroup label="活动展会">
+        <option value="文化娱乐">文化娱乐</option>
+        <option value="消费电商">消费电商</option>
+        <option value="汽车出行">汽车出行</option>
+        <option value="教育">教育</option>
+        <!-- ...其他选项... -->
+      </optgroup>
+      <optgroup label="创业咖啡">
+        <option value="创业企业">创业企业</option>
+        <option value="投资机构">投资机构</option>
+      </optgroup>
+      <optgroup label="电商渠道">
+        <option value="电商战略">电商战略</option>
+        <option value="电商工具">电商工具</option>
+      </optgroup>
     </select>
   </label>
+
 
 
 
