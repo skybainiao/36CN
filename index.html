@@ -536,34 +536,6 @@
       });
     });
 
-    function searchByCategory(category) {
-      // 清空当前的grid items
-      const gridContainer = document.querySelector('.grid-container');
-      gridContainer.innerHTML = '';
-
-      // 在Firebase中搜索匹配的数据
-      let query = database.ref('shopDetails').orderByChild('hangye').equalTo(category);
-      query.once('value', function(snapshot) {
-        let posts = snapshot.val();
-        let searchResults = {};
-
-        // 检查snapshot是否为空
-        if (posts) {
-          // 处理搜索结果
-          for (let id in posts) {
-            let post = posts[id];
-            searchResults[id] = post;
-          }
-          // 调用populatePosts函数来显示搜索结果
-          populatePosts(searchResults);
-        } else {
-          // 如果没有找到结果，可以显示消息或进行其他操作
-          console.log('No posts found for category: ' + category);
-        }
-      });
-    }
-
-
 
 
 
