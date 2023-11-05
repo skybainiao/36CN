@@ -279,60 +279,49 @@
       max-width: 500px; /* 最大宽度 */
       box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19); /* 阴影效果 */
     }
-
-    /* 下拉菜单的基本样式 */
-    .dropdown {
-      float: left;
-      overflow: hidden;
-
+    /* 下拉按钮的基本样式 */
+    .dropbtn {
+      background-color: white; /* 按钮背景色 */
+      color: black; /* 按钮文字颜色 */
+      padding: 16px; /* 按钮内边距 */
+      font-size: 16px; /* 文字大小 */
+      border: none; /* 移除边框 */
+      cursor: pointer; /* 鼠标悬停时显示指针 */
     }
 
-    /* 下拉菜单按钮的样式 */
-    .dropdown .dropbtn {
-      cursor: pointer;
-      font-size: 16px;
-      border: none;
-      outline: none;
-      color: black;
-      padding: 14px 16px;
-      background-color: inherit;
-      font-family: inherit; /* 导航栏的字体 */
-      margin: 0; /* 去除外边距 */
-    }
-
-    /* 下拉内容的容器，当鼠标悬停在下拉按钮上时显示 */
+    /* 下拉内容的基本样式 */
     .dropdown-content {
-      display: none;
-      position: absolute;
-      background-color: #f9f9f9;
-      min-width: 160px;
-      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-      z-index: 1;
+      display: none; /* 默认不显示下拉内容 */
+      position: absolute; /* 绝对定位 */
+      background-color: #f9f9f9; /* 下拉内容背景色 */
+      min-width: 160px; /* 最小宽度 */
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); /* 盒子阴影 */
+      z-index: 1; /* z-index确保下拉内容在其他内容上方 */
     }
 
     /* 下拉内容的链接样式 */
     .dropdown-content a {
-      float: none;
-      color: black;
-      padding: 12px 16px;
-      text-decoration: none;
-      display: block;
-      text-align: left;
+      color: black; /* 链接文字颜色 */
+      padding: 12px 16px; /* 链接内边距 */
+      text-decoration: none; /* 移除下划线 */
+      display: block; /* 显示为块级元素 */
     }
 
-    /* 鼠标悬停时改变下拉链接的背景颜色 */
-    .dropdown-content a:hover {
-      background-color: #ddd;
+    /* 鼠标悬停在下拉按钮上时的样式 */
+    .dropbtn:hover, .dropdown-content a:hover {
+      background-color: grey; /* 按钮和链接的 hover 背景色 */
     }
 
-    /* 显示下拉菜单的内容 */
+    /* 显示下拉内容的样式 */
     .dropdown:hover .dropdown-content {
-      display: block;
+      display: block; /* 鼠标悬停时显示下拉内容 */
     }
 
-    /* 当下拉内容显示时，改变下拉按钮的背景颜色 */
-    .dropdown:hover .dropbtn {
-      background-color: grey;
+    /* 在有下拉菜单的按钮旁边添加向下箭头 */
+    .dropbtn:after {
+      content: " \25BC"; /* 添加下箭头字符 */
+      font-size: 12px; /* 箭头大小 */
+      padding-left: 5px; /* 箭头和文字的间距 */
     }
 
 
@@ -419,18 +408,26 @@
     <div class="dropdown">
       <button class="dropbtn" >创业咖啡</button>
       <div class="dropdown-content">
-        <a href="#">创业企业</a>
-        <a href="#">投资机构</a>
+        <a href="#" data-category="创业企业">创业企业</a>
+        <a href="#" data-category="投资机构">投资机构</a>
       </div>
     </div>
     <div class="dropdown">
       <button class="dropbtn">电商渠道</button>
       <div class="dropdown-content">
-        <a href="#">电商战略</a>
-        <a href="#">电商工具</a>
+        <a href="#" data-category="电商战略">电商战略</a>
+        <a href="#" data-category="电商工具">电商工具</a>
       </div>
     </div>
-    <a href="#">活动展会</a>
+
+    <div class="dropdown">
+      <button class="dropbtn">活动展会</button>
+      <div class="dropdown-content">
+        <a href="#" data-category="国内">国内</a>
+        <a href="#" data-category="国外">国外</a>
+      </div>
+    </div>
+
   </nav>
 
 
@@ -526,6 +523,51 @@
     }
 
 
+    // 绑定点击事件到所有下拉菜单中的链接
+    document.querySelectorAll('.dropdown-content a').forEach(function(element) {
+      element.addEventListener('click', function(e) {
+        e.preventDefault(); // 阻止链接默认行为
+
+        // 获取data-category属性值，这将是hangye或type字段的值
+        var category = this.getAttribute('data-category');
+
+        // 调用一个函数来处理搜索并显示结果
+        searchAndDisplay(category);
+      });
+    });
+
+    function searchByCategory(category) {
+      // 清空当前的grid items
+      const gridContainer = document.querySelector('.grid-container');
+      gridContainer.innerHTML = '';
+
+      // 在Firebase中搜索匹配的数据
+      let query = database.ref('shopDetails').orderByChild('hangye').equalTo(category);
+      query.once('value', function(snapshot) {
+        let posts = snapshot.val();
+        let searchResults = {};
+
+        // 检查snapshot是否为空
+        if (posts) {
+          // 处理搜索结果
+          for (let id in posts) {
+            let post = posts[id];
+            searchResults[id] = post;
+          }
+          // 调用populatePosts函数来显示搜索结果
+          populatePosts(searchResults);
+        } else {
+          // 如果没有找到结果，可以显示消息或进行其他操作
+          console.log('No posts found for category: ' + category);
+        }
+      });
+    }
+
+
+
+
+
+
     // 获取模态框元素
     var modal = document.getElementById("searchModal");
 
@@ -581,6 +623,7 @@
 
           // 如果任何一个字段包含搜索词，则添加到搜索结果
           if (isInTitle || isInIntroduction || isInCompanyName || isInType || isInHangye) {
+            post.id = id;
             searchResults[id] = post;
             // 获取图片的URL
             let imageFolderPath = `shopImages/${id}/`;
@@ -702,6 +745,7 @@
         anchor.id = `item${index + 1}`;
         anchor.className = 'movie';
         anchor.target = "_self";
+        console.log("Creating link for post ID:", post.id); // 添加调试信息
         anchor.href = `html/showPost.html?id=${post.id}`;
         anchor.style.textDecoration = 'none'; // 移除下划线
 
