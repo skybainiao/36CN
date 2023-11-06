@@ -385,8 +385,7 @@
 
       <!-- ... (repeat slides) -->
     </div>
-    <!-- If we need pagination -->
-    <div class="swiper-pagination"></div>
+
 
   </div>
 
@@ -821,7 +820,7 @@
 
         const img = document.createElement('img');
         img.id = `img${index + 1}`;
-        img.style.width = '100px'; // 设置图片宽度
+        img.style.width = '120px'; // 设置图片宽度
         img.style.height = '100px'; // 设置图片高度
         if (post.imageURL) {
           img.src = post.imageURL;
@@ -833,7 +832,7 @@
 
         const textDiv = document.createElement('div');
         textDiv.style.flexGrow = '1';
-        textDiv.style.paddingLeft = '15px'; // 添加左内边距
+        textDiv.style.paddingLeft = '30px'; // 添加左内边距
         textDiv.style.margin = '0';
         textDiv.style.width = '300px';
 
@@ -841,7 +840,7 @@
         strong.id = `s${index + 1}`;
         strong.innerText = post.title;
         strong.style.display = 'block'; // 使其成为块级元素
-        strong.style.fontSize = '16px'; // 设置字体大小
+        strong.style.fontSize = '14px'; // 设置字体大小
         strong.style.color = '#333'; // 设置字体颜色
         strong.style.margin = '0';
         strong.style.padding = '0';
@@ -851,7 +850,7 @@
         companyNameP.innerText = post.companyName; // 设置公司名称文本
         companyNameP.style.fontSize = '14px'; // 设置字体大小比标题小
         companyNameP.style.color = 'black'; // 设置字体颜色为淡灰色
-        companyNameP.style.marginTop = '8px'; // 设置与标题之间的间距
+        companyNameP.style.marginTop = '10px'; // 设置与标题之间的间距
         companyNameP.style.marginBottom = '0'; // 设置底部间距为0
         companyNameP.style.overflow = 'hidden'; // 超出部分隐藏
         companyNameP.style.textOverflow = 'ellipsis'; // 文本溢出显示省略号
@@ -864,7 +863,7 @@
         hangye.innerText = post.hangye; // 设置公司名称文本
         hangye.style.fontSize = '14px'; // 设置字体大小比标题小
         hangye.style.color = 'rgba(51, 51, 51, 0.5)';  // 设置字体颜色为淡灰色
-        hangye.style.marginTop = '8px'; // 设置与标题之间的间距
+        hangye.style.marginTop = '12px'; // 设置与标题之间的间距
         hangye.style.marginBottom = '0'; // 设置底部间距为0
         hangye.style.overflow = 'hidden'; // 超出部分隐藏
         hangye.style.textOverflow = 'ellipsis'; // 文本溢出显示省略号
