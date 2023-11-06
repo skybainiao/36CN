@@ -371,21 +371,18 @@
     <div class="swiper-wrapper">
       <!-- Slides -->
       <div class="swiper-slide">
-        <img src="img/isreal.jpg" alt="Image 1">
-        <p>以巴冲突：数十万加沙居民流离失所， 国际社会寻求开通“人道走廊”</p>
+        <img src=" " alt="Image 1">
+        <p> </p>
       </div>
       <div class="swiper-slide">
-        <img src="img/a.jpg" alt="Image 2">
-        <p>以巴冲突：跳伞与滑翔——哈马斯攻陷以色列的“山寨技术”</p>
+        <img src=" " alt="Image 2">
+        <p> </p>
       </div>
       <div class="swiper-slide">
-        <img src="img/b.png" alt="Image 3">
-        <p>中国年轻人走进非洲： 掘金，逃避和叛逆</p>
+        <img src=" " alt="Image 3">
+        <p> </p>
       </div>
-      <div class="swiper-slide">
-        <img src="img/c.jpg" alt="Image 4">
-        <p>以巴冲突：在战地加沙，“当死亡从天而降，你能躲去哪儿？”/p>
-      </div>
+
       <!-- ... (repeat slides) -->
     </div>
     <!-- If we need pagination -->
@@ -459,29 +456,10 @@
 
   <script>
 
-    var swiper = new Swiper('.swiper-container', {
-      slidesPerView: 1,
-      spaceBetween: 10,
-      loop: true, // 让图片可以循环滚动
-      autoplay: {
-        delay: 3000, // 3秒
-        disableOnInteraction: false, // 用户交互后，继续自动播放
-      },
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true,
-        type: 'bullets', // 使用小圆点作为指示条
-        dynamicBullets: true, // 当有很多幻灯片时，使小圆点变得动态
-      },
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
-      },
-    });
 
 
 
-  let  firebaseConfig = {
+    let  firebaseConfig = {
     apiKey: "AIzaSyAi9uwdfkmHPrc9HtJCZFxFu-ppaUKa-G0",
     authDomain: "cn-9ae7f.firebaseapp.com",
     databaseURL: "https://cn-9ae7f-default-rtdb.europe-west1.firebasedatabase.app",
@@ -497,9 +475,6 @@
     window.onload = function() {
       changeStatus();
       loadPosts(currentPage, null); // 初始化为 null 类别
-
-
-
     };
 
     function changeStatus() {
@@ -521,6 +496,96 @@
     }
 
 
+    // 获取最后三个帖子的数据并排序
+    function loadSwiperSlides() {
+      var postsRef = database.ref('shopDetails'); // 假设'posts'是存储帖子的数据库节点
+      // 使用limitToLast查询最后三个帖子
+      postsRef.limitToLast(3).once('value', function(snapshot) {
+        var posts = [];
+        snapshot.forEach(function(childSnapshot) {
+          var post = childSnapshot.val();
+          post.id = childSnapshot.key; // 保存帖子ID
+          posts.push(post);
+        });
+        // 由于limitToLast返回的是最后三个帖子，所以不需要再次排序
+        // 为每个帖子获取图片URL并更新Swiper滑块
+        fetchImagesAndUpdateSwiper(posts);
+      });
+    }
+
+    // 为帖子获取图片URL
+    function fetchImagesAndUpdateSwiper(posts) {
+      var fetchImagePromises = posts.map(post => {
+        // 构建到图片文件夹的引用
+        var imagesRef = firebase.storage().ref('shopImages/' + post.id);
+        // 获取文件夹下所有文件的引用
+        return imagesRef.listAll().then(result => {
+          // 如果文件夹不为空，则获取第一个图片的URL
+          if (result.items.length > 0) {
+            return result.items[0].getDownloadURL(); // 获取第一个图片的下载URL
+          } else {
+            // 如果文件夹为空，返回默认图片或null
+            return 'path_to_default_image.jpg'; // 或者您可以选择返回null或其他默认图片
+          }
+        });
+      });
+
+      Promise.all(fetchImagePromises).then(imageURLs => {
+        // 将获取到的URLs与帖子对象合并
+        posts.forEach((post, index) => {
+          post.imageURL = imageURLs[index]; // 设置帖子的imageURL属性
+        });
+        // 更新Swiper滑块
+        updateSwiperSlides(posts);
+      }).catch(error => {
+        console.error("Error fetching images: ", error);
+      });
+    }
+
+    // 更新Swiper滑块内容
+    function updateSwiperSlides(posts) {
+      var swiperWrapper = document.querySelector('.swiper-wrapper');
+      swiperWrapper.innerHTML = ''; // 清空现有的滑块内容
+
+      posts.forEach(function(post) {
+        var slide = document.createElement('div');
+        slide.className = 'swiper-slide';
+        slide.innerHTML = `
+      <img src="${post.imageURL}" alt="${post.title}">
+      <p>${post.title}</p>
+    `;
+        slide.onclick = function() {
+          window.location.href = `html/showPost.html?id=${post.id}`; // 点击滑块时的跳转
+        };
+        swiperWrapper.appendChild(slide);
+      });
+
+      // 重新初始化Swiper
+      new Swiper('.swiper-container', {
+        slidesPerView: 1,
+        spaceBetween: 10,
+        loop: true, // 如果滑块数量足够，可以开启循环模式
+        autoplay: {
+          delay: 2500,
+          disableOnInteraction: false,
+        },
+        pagination: {
+          el: '.swiper-pagination',
+          clickable: true,
+          type: 'bullets',
+          dynamicBullets: true,
+        },
+        navigation: {
+          nextEl: '.swiper-button-next',
+          prevEl: '.swiper-button-prev',
+        },
+      });
+    }
+
+    // 页面加载完成后，调用loadSwiperSlides函数
+    document.addEventListener('DOMContentLoaded', loadSwiperSlides);
+
+
 
 
 
@@ -538,7 +603,6 @@
         searchAndDisplay(category);
       });
     });
-
 
 
 
@@ -787,7 +851,7 @@
         companyNameP.innerText = post.companyName; // 设置公司名称文本
         companyNameP.style.fontSize = '14px'; // 设置字体大小比标题小
         companyNameP.style.color = 'black'; // 设置字体颜色为淡灰色
-        companyNameP.style.marginTop = '10px'; // 设置与标题之间的间距
+        companyNameP.style.marginTop = '8px'; // 设置与标题之间的间距
         companyNameP.style.marginBottom = '0'; // 设置底部间距为0
         companyNameP.style.overflow = 'hidden'; // 超出部分隐藏
         companyNameP.style.textOverflow = 'ellipsis'; // 文本溢出显示省略号
@@ -819,18 +883,7 @@
       });
 
 
-      // Re-attach event listeners to the pagination buttons
-      document.getElementById('nextPage').addEventListener('click', function() {
-        currentPage++;
-        loadPosts(currentPage);
-      });
 
-      document.getElementById('prevPage').addEventListener('click', function() {
-        if (currentPage > 1) {
-          currentPage--;
-          loadPosts(currentPage);
-        }
-      });
     }
 
 
