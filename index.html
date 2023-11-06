@@ -283,7 +283,7 @@
     .dropbtn {
       background-color: white; /* 按钮背景色 */
       color: black; /* 按钮文字颜色 */
-      padding: 16px; /* 按钮内边距 */
+      padding: 11px; /* 按钮内边距 */
       font-size: 16px; /* 文字大小 */
       border: none; /* 移除边框 */
       cursor: pointer; /* 鼠标悬停时显示指针 */
@@ -747,7 +747,7 @@
         const contentDiv = document.createElement('div');
         contentDiv.className = 'content-wrap';
         contentDiv.style.display = 'flex';
-        contentDiv.style.width = '360px'; // 设置固定宽度
+        contentDiv.style.width = '350px'; // 设置固定宽度
 
         const coverDiv = document.createElement('div');
         coverDiv.className = 'cover-wp';
@@ -786,8 +786,8 @@
         const companyNameP = document.createElement('p');
         companyNameP.innerText = post.companyName; // 设置公司名称文本
         companyNameP.style.fontSize = '14px'; // 设置字体大小比标题小
-        companyNameP.style.color = 'rgba(51, 51, 51, 0.5)'; // 设置字体颜色为淡灰色
-        companyNameP.style.marginTop = '38px'; // 设置与标题之间的间距
+        companyNameP.style.color = 'black'; // 设置字体颜色为淡灰色
+        companyNameP.style.marginTop = '10px'; // 设置与标题之间的间距
         companyNameP.style.marginBottom = '0'; // 设置底部间距为0
         companyNameP.style.overflow = 'hidden'; // 超出部分隐藏
         companyNameP.style.textOverflow = 'ellipsis'; // 文本溢出显示省略号
@@ -795,9 +795,23 @@
 
         // 将公司名称段落添加到文本Div中
 
+        // 创建显示公司名称的段落
+        const hangye = document.createElement('p');
+        hangye.innerText = post.hangye; // 设置公司名称文本
+        hangye.style.fontSize = '14px'; // 设置字体大小比标题小
+        hangye.style.color = 'rgba(51, 51, 51, 0.5)';  // 设置字体颜色为淡灰色
+        hangye.style.marginTop = '8px'; // 设置与标题之间的间距
+        hangye.style.marginBottom = '0'; // 设置底部间距为0
+        hangye.style.overflow = 'hidden'; // 超出部分隐藏
+        hangye.style.textOverflow = 'ellipsis'; // 文本溢出显示省略号
+        hangye.style.whiteSpace = 'nowrap'; // 不换行显示
+
+        // 将公司名称段落添加到文本Div中
+
 
         textDiv.appendChild(strong);
         textDiv.appendChild(companyNameP);
+        textDiv.appendChild(hangye);
         contentDiv.appendChild(textDiv);
         anchor.appendChild(contentDiv);
         gridItem.appendChild(anchor);
