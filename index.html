@@ -782,8 +782,22 @@
         strong.style.margin = '0';
         strong.style.padding = '0';
 
-        textDiv.appendChild(strong);
+        // 创建显示公司名称的段落
+        const companyNameP = document.createElement('p');
+        companyNameP.innerText = post.companyName; // 设置公司名称文本
+        companyNameP.style.fontSize = '14px'; // 设置字体大小比标题小
+        companyNameP.style.color = 'rgba(51, 51, 51, 0.5)'; // 设置字体颜色为淡灰色
+        companyNameP.style.marginTop = '38px'; // 设置与标题之间的间距
+        companyNameP.style.marginBottom = '0'; // 设置底部间距为0
+        companyNameP.style.overflow = 'hidden'; // 超出部分隐藏
+        companyNameP.style.textOverflow = 'ellipsis'; // 文本溢出显示省略号
+        companyNameP.style.whiteSpace = 'nowrap'; // 不换行显示
 
+        // 将公司名称段落添加到文本Div中
+
+
+        textDiv.appendChild(strong);
+        textDiv.appendChild(companyNameP);
         contentDiv.appendChild(textDiv);
         anchor.appendChild(contentDiv);
         gridItem.appendChild(anchor);
