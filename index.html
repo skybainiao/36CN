@@ -440,16 +440,14 @@
       <div class="header-section">
 
 
+        <div id="loading" style="display:none;">Loading...</div>
 
 
       </div>
 
       <div class="grid-container">
         <!-- Grid items will be dynamically inserted here -->
-        <div class="pagination">
-          <button id="prevPage">上一页</button>
-          <button id="nextPage">下一页</button>
-        </div>
+
       </div>
 
 
@@ -521,6 +519,11 @@
         });
       }
     }
+
+
+
+
+
 
 
     // 绑定点击事件到所有下拉菜单中的链接
@@ -622,90 +625,93 @@
 
 
 
+    let currentPage = 1; // 当前页码
+    const postsPerPage = 6; // 每页显示的帖子数
+    let allPostsLoaded = false; // 标志，表示是否加载了所有帖子
+    let lastPostId = null; // 保存最后一个帖子的ID
 
-    let currentPage = 1;
-    const postsPerPage = 4;
-
-
-    function loadPosts(page, storeType) {
-      const startIndex = (page - 1) * postsPerPage;
-      const endIndex = startIndex + postsPerPage;
-
-      let query = database.ref('shopDetails');
-
-      if (storeType) {
-        query = query.orderByChild('storeType').equalTo(storeType);
+    // 添加滚动事件监听器来加载更多帖子
+    window.addEventListener('scroll', function() {
+      // 检查用户是否滚动到页面底部，并且没有加载所有帖子
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight && !allPostsLoaded) {
+        loadPosts(); // 调用loadPosts函数加载更多帖子
       }
+    });
 
-      query.once('value').then(snapshot => {
-        let allPosts = snapshot.val();
-        if (!allPosts) {
-          console.error("No posts retrieved from database.");
+
+    function loadPosts() {
+      // 显示加载指示器
+      document.getElementById('loading').style.display = 'block';
+
+      // 定义从哪里开始加载帖子
+      let query = database.ref('shopDetails').orderByKey();
+      if (lastPostId) {
+        query = query.startAfter(lastPostId); // 从上次加载的最后一个帖子之后开始查询
+      }
+      query.limitToFirst(postsPerPage).once('value').then(snapshot => {
+        let posts = snapshot.val();
+        if (!posts) {
+          console.error("No new posts retrieved from database.");
+          allPostsLoaded = true; // 如果没有新帖子，设置allPostsLoaded为true
+          document.getElementById('loading').style.display = 'none';
           return;
         }
 
-        // 排序所有帖子，并为每个帖子添加id属性
-        let sortedPostsArray = Object.entries(allPosts).map(([id, post]) => ({ ...post, id })).sort((a, b) => b.rating - a.rating);
+        // 更新最后一个帖子的ID
+        lastPostId = Object.keys(posts).pop(); // 获取最后一个帖子的ID
 
-        // 从已排序的数组中获取当前页面的帖子
-        let currentPostsArray = sortedPostsArray.slice(startIndex, endIndex);
-
-        // 转换数组回对象
-        let posts = {};
-        currentPostsArray.forEach(post => {
-          posts[post.id] = post;
-        });
-
-        let fetchImageURLPromises = [];
-
-        for (let postId in posts) {
-
-          let imageFolderPath = `shopImages/${postId}/`;
-          let imageFolderRef = firebase.storage().ref(imageFolderPath);
-
-          let promise = imageFolderRef.listAll().then(result => {
-            if (result.items.length === 0) {
-              return null;
-            }
-            let randomImageRef = result.items[Math.floor(Math.random() * result.items.length)];
-            return randomImageRef.getDownloadURL();
-          });
-
-          fetchImageURLPromises.push(promise);
-        }
-
-        Promise.all(fetchImageURLPromises)
-          .then(imageURLs => {
-            imageURLs.forEach((imageURL, index) => {
-              let postId = Object.keys(posts)[index];
-              posts[postId].imageURL = imageURL;
-            });
-
-            populatePosts(posts);
-          })
-          .catch(error => {
-            console.error("Error fetching image URLs: ", error);
-          });
-
+        // 处理帖子数据和图片URLs
+        processPosts(posts, true); // 传递true作为第二个参数，表示追加帖子
       }).catch(error => {
-        console.error("Error fetching posts from database: ", error);
+        console.error("Error fetching new posts from database: ", error);
+        document.getElementById('loading').style.display = 'none';
       });
+    }
 
+    // 修改processPosts函数以支持追加帖子
+    function processPosts(posts, append = false) {
+      let fetchImageURLPromises = [];
+      for (let postId in posts) {
+        let imageFolderPath = `shopImages/${postId}/`;
+        let imageFolderRef = firebase.storage().ref(imageFolderPath);
+        let promise = imageFolderRef.listAll().then(result => {
+          if (result.items.length === 0) {
+            return 'path_to_default_image.jpg'; // 如果没有图片，返回默认图片的路径
+          }
+          let randomImageRef = result.items[Math.floor(Math.random() * result.items.length)];
+          return randomImageRef.getDownloadURL();
+        });
+        fetchImageURLPromises.push(promise);
+      }
 
+      Promise.all(fetchImageURLPromises)
+        .then(imageURLs => {
+          imageURLs.forEach((imageURL, index) => {
+            let postId = Object.keys(posts)[index];
+            posts[postId].imageURL = imageURL; // 将获取到的URL设置为帖子的imageURL属性
+          });
 
-
-
-
+          populatePosts(posts, append); // 传递append参数到populatePosts
+          document.getElementById('loading').style.display = 'none';
+        })
+        .catch(error => {
+          console.error("Error fetching image URLs: ", error);
+          document.getElementById('loading').style.display = 'none';
+        });
     }
 
 
+
+
     // Updated populatePosts function
-    function populatePosts(posts) {
+    function populatePosts(posts, append) {
       let postArray = Object.values(posts);
       const gridContainer = document.querySelector('.grid-container');
 
-      // Clear current grid items
-      gridContainer.innerHTML = '';
+      // 如果不是追加，则清空当前帖子
+      if (!append) {
+        gridContainer.innerHTML = '';
+      }
 
       postArray.forEach((post, index) => {
         const gridItem = document.createElement('div');
@@ -770,13 +776,6 @@
 
 
 
-      // Add back the pagination
-      gridContainer.innerHTML += `
-<div class="pagination" style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 1000;">
-  <button id="prevPage" style="font-size: 14px; padding: 5px 10px; margin-right: 10px;">上一页</button>
-  <button id="nextPage" style="font-size: 14px; padding: 5px 10px;">下一页</button>
-</div>
-`;
 
 
       // Re-attach event listeners to the pagination buttons
