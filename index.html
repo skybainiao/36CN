@@ -657,6 +657,23 @@
           return;
         }
 
+        if (!posts) {
+          console.error("No posts retrieved from database.");
+          return;
+        }
+
+        // 排序所有帖子，并为每个帖子添加id属性
+        let sortedPostsArray = Object.entries(posts).map(([id, post]) => ({ ...post, id })).sort((a, b) => b.rating - a.rating);
+
+
+
+        // 转换数组回对象
+
+        sortedPostsArray.forEach(post => {
+          posts[post.id] = post;
+        });
+
+
         // 更新最后一个帖子的ID
         lastPostId = Object.keys(posts).pop(); // 获取最后一个帖子的ID
 
