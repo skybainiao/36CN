@@ -791,10 +791,6 @@
       });
 
 
-
-
-
-
       // Re-attach event listeners to the pagination buttons
       document.getElementById('nextPage').addEventListener('click', function() {
         currentPage++;
@@ -810,8 +806,22 @@
     }
 
 
+    // 添加触摸事件监听器来加载更多帖子
+    let touchstartY = 0;
+    let touchendY = 0;
+    const threshold = 150; // 设置一个阈值，当用户下拉超过这个值时触发刷新
 
+    document.addEventListener('touchstart', function(e) {
+      touchstartY = e.changedTouches[0].screenY;
+    }, false);
 
+    document.addEventListener('touchend', function(e) {
+      touchendY = e.changedTouches[0].screenY;
+      if (touchstartY - touchendY > threshold && !allPostsLoaded) {
+        // 用户下拉动作超过阈值且页面未全部加载时，加载新帖子
+        loadPosts();
+      }
+    }, false);
 
 
 
