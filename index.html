@@ -748,6 +748,7 @@
       });
     }
 
+
     // 修改processPosts函数以支持追加帖子
     function processPosts(posts, append = false) {
       let fetchImageURLPromises = [];
@@ -793,6 +794,7 @@
         gridContainer.innerHTML = '';
       }
 
+      postArray.reverse();
       postArray.forEach((post, index) => {
         const gridItem = document.createElement('div');
         gridItem.className = 'grid-item';
