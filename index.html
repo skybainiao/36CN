@@ -693,14 +693,7 @@
     let allPostsLoaded = false; // 标志，表示是否加载了所有帖子
     let lastPostId = null; // 保存最后一个帖子的ID
 
-    // 添加滚动事件监听器来加载更多帖子
-    window.addEventListener('scroll', function() {
-      // 检查用户是否滚动到页面底部，并且没有加载所有帖子
-      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight && !allPostsLoaded) {
-        loadPosts(); // 调用loadPosts函数加载更多帖子
-      }
-    });
-
+     
 
     function loadPosts() {
       // 显示加载指示器
@@ -794,7 +787,7 @@
         gridContainer.innerHTML = '';
       }
 
-      postArray.reverse();
+
       postArray.forEach((post, index) => {
         const gridItem = document.createElement('div');
         gridItem.className = 'grid-item';
