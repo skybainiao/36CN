@@ -716,8 +716,12 @@
       getCurrentPostId((currentPostId) => {
         // 确保currentPostId是一个字符串
         if (typeof currentPostId === 'string') {
-          let query = database.ref('shopDetails').orderByKey().endAt(currentPostId);
-          query.limitToLast(postsPerPage).once('value').then(snapshot => {
+          // 如果lastPostId存在，则使用startAfter来避免重复加载
+          let query = lastPostId
+            ? database.ref('shopDetails').orderByKey().startAfter(lastPostId).limitToFirst(postsPerPage)
+            : database.ref('shopDetails').orderByKey().endAt(currentPostId).limitToLast(postsPerPage);
+
+          query.once('value').then(snapshot => {
             let posts = [];
             snapshot.forEach((childSnapshot) => {
               let post = childSnapshot.val();
@@ -725,21 +729,19 @@
               posts.push(post);
             });
 
-            // 检查是否有帖子被检索
+            // 如果没有检索到新帖子
             if (posts.length === 0) {
               console.error("No new posts retrieved from database.");
-              allPostsLoaded = true; // 如果没有新帖子，设置allPostsLoaded为true
+              allPostsLoaded = true;
               document.getElementById('loading').style.display = 'none';
               return;
             }
 
-            // 排序所有帖子，并为每个帖子添加id属性
-            posts.sort((a, b) => b.id.localeCompare(a.id)); // 按id降序排序，使用localeCompare以支持字符串比较
+            // 按id降序排序帖子
+            posts.sort((a, b) => b.id.localeCompare(a.id));
 
-            // 更新最后一个帖子的ID，如果posts数组不为空
-            if (posts.length > 0) {
-              lastPostId = posts[posts.length - 1].id; // 更新为数组中最后一个帖子的ID
-            }
+            // 更新lastPostId为当前加载的帖子中最小的ID
+            lastPostId = posts[posts.length - 1].id;
 
             // 处理帖子数据和图片URLs
             processPosts(posts, true); // 传递true作为第二个参数，表示追加帖子
@@ -898,6 +900,8 @@
     let touchendY = 0;
     const threshold = 100; // 设置一个阈值，当用户下拉超过这个值时触发刷新
 
+
+    // 下拉刷新逻辑
     document.addEventListener('touchstart', function(e) {
       touchstartY = e.changedTouches[0].screenY;
     }, false);
@@ -905,7 +909,7 @@
     document.addEventListener('touchend', function(e) {
       touchendY = e.changedTouches[0].screenY;
       if (touchstartY - touchendY > threshold && !allPostsLoaded) {
-        // 用户下拉动作超过阈值且页面未全部加载时，加载新帖子
+        // 如果用户下拉动作超过阈值且页面未全部加载时，加载新帖子
         loadPosts();
       }
     }, false);
