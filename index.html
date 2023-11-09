@@ -693,7 +693,7 @@
     let allPostsLoaded = false; // 标志，表示是否加载了所有帖子
     let lastPostId = null; // 保存最后一个帖子的ID
 
-     
+
 
     function loadPosts() {
       // 显示加载指示器
@@ -787,7 +787,7 @@
         gridContainer.innerHTML = '';
       }
 
-
+      postArray.reverse();
       postArray.forEach((post, index) => {
         const gridItem = document.createElement('div');
         gridItem.className = 'grid-item';
@@ -884,7 +884,7 @@
     // 添加触摸事件监听器来加载更多帖子
     let touchstartY = 0;
     let touchendY = 0;
-    const threshold = 150; // 设置一个阈值，当用户下拉超过这个值时触发刷新
+    const threshold = 100; // 设置一个阈值，当用户下拉超过这个值时触发刷新
 
     document.addEventListener('touchstart', function(e) {
       touchstartY = e.changedTouches[0].screenY;
