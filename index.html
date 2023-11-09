@@ -692,6 +692,53 @@
     const postsPerPage = 6; // 每页显示的帖子数
     let allPostsLoaded = false; // 标志，表示是否加载了所有帖子
     let lastPostId = null; // 保存最后一个帖子的ID
+    let newLastPostId = null;
+
+    function newLoadPosts() {
+      if (allPostsLoaded) {
+        return; // 如果所有帖子都已加载，不执行任何操作
+      }
+
+      // 显示加载指示器
+      document.getElementById('loading').style.display = 'block';
+
+      // 获取所有帖子
+      database.ref('shopDetails').orderByKey().once('value').then(snapshot => {
+        let posts = [];
+        snapshot.forEach((childSnapshot) => {
+          let post = childSnapshot.val();
+          post.id = childSnapshot.key;
+          // 只添加ID小于newLastPostId的帖子
+          if (!newLastPostId || post.id < newLastPostId) {
+            posts.push(post);
+          }
+        });
+
+        // 没有更多帖子可加载
+        if (posts.length === 0) {
+          allPostsLoaded = true;
+          document.getElementById('loading').style.display = 'none';
+          return;
+        }
+
+        // 按id降序排序帖子
+        posts.sort((a, b) => b.id.localeCompare(a.id));
+
+        // 取排序后的前postsPerPage个帖子
+        let postsToShow = posts.slice(0, postsPerPage);
+        if (postsToShow.length > 0) {
+          // 更新newLastPostId为当前加载的帖子中最小的ID
+          newLastPostId = postsToShow[postsToShow.length - 1].id;
+        }
+
+        // 处理帖子数据和图片URLs
+        processPosts(postsToShow, true); // 追加帖子
+        document.getElementById('loading').style.display = 'none';
+      }).catch(error => {
+        console.error("Error fetching posts: ", error);
+        document.getElementById('loading').style.display = 'none';
+      });
+    }
 
 
 
@@ -712,11 +759,11 @@
       // 显示加载指示器
       document.getElementById('loading').style.display = 'block';
 
-      // 首先获取currentPostId
+      // 获取currentPostId
       getCurrentPostId((currentPostId) => {
         // 确保currentPostId是一个字符串
         if (typeof currentPostId === 'string') {
-          // 如果lastPostId存在，则使用startAfter来避免重复加载
+          // 根据lastPostId加载帖子
           let query = lastPostId
             ? database.ref('shopDetails').orderByKey().startAfter(lastPostId).limitToFirst(postsPerPage)
             : database.ref('shopDetails').orderByKey().endAt(currentPostId).limitToLast(postsPerPage);
@@ -725,13 +772,12 @@
             let posts = [];
             snapshot.forEach((childSnapshot) => {
               let post = childSnapshot.val();
-              post.id = childSnapshot.key; // 保存帖子ID
+              post.id = childSnapshot.key;
               posts.push(post);
             });
 
-            // 如果没有检索到新帖子
+            // 检查是否检索到新帖子
             if (posts.length === 0) {
-              console.error("No new posts retrieved from database.");
               allPostsLoaded = true;
               document.getElementById('loading').style.display = 'none';
               return;
@@ -740,13 +786,15 @@
             // 按id降序排序帖子
             posts.sort((a, b) => b.id.localeCompare(a.id));
 
-            // 更新lastPostId为当前加载的帖子中最小的ID
-            lastPostId = posts[posts.length - 1].id;
+            // 更新lastPostId和newLastPostId
+            lastPostId = posts[0].id; // 更新lastPostId为当前加载的帖子中最大的ID
+            newLastPostId = posts[posts.length - 1].id; // 更新newLastPostId为当前加载的帖子中最小的ID
+            console.log(lastPostId,newLastPostId);
 
-            // 处理帖子数据和图片URLs
-            processPosts(posts, true); // 传递true作为第二个参数，表示追加帖子
+            processPosts(posts, true); // 追加帖子
+            document.getElementById('loading').style.display = 'none';
           }).catch(error => {
-            console.error("Error fetching new posts from database: ", error);
+            console.error("Error fetching new posts: ", error);
             document.getElementById('loading').style.display = 'none';
           });
         } else {
@@ -910,7 +958,8 @@
       touchendY = e.changedTouches[0].screenY;
       if (touchstartY - touchendY > threshold && !allPostsLoaded) {
         // 如果用户下拉动作超过阈值且页面未全部加载时，加载新帖子
-        loadPosts();
+        console.log(newLastPostId);
+        newLoadPosts();
       }
     }, false);
 
