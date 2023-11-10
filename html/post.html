@@ -151,7 +151,7 @@
     </select>
   </label>
 
-
+  <br>
 
   <label for="hangye">种类:
     <select id="hangye" name="hangye" required>
@@ -183,7 +183,7 @@
     </select>
   </label>
 
-
+  <br>
 
 
   <label for="images">图片 (可以选择多张):</label>
@@ -246,11 +246,17 @@
 
 
   function showLoading() {
-    document.getElementById("feedback-container").style.display = "inline";
+    const feedbackEl = document.getElementById("feedback");
+    const loadingIcon = document.getElementById("loading-icon");
+    feedbackEl.textContent = "上传中..."; // 设置上传中的文本
+    feedbackEl.style.color = "black"; // 可以设置为任何颜色，这里使用黑色
+    loadingIcon.style.display = "inline-block"; // 显示加载图标
+    document.getElementById("feedback-container").style.display = "inline"; // 显示反馈容器
   }
 
+
   function hideLoading() {
-    document.getElementById("feedback-container").style.display = "none";
+    document.getElementById("feedback-container").style.display = "none"; // 隐藏反馈容器
   }
 
 
@@ -289,7 +295,7 @@
 
       }).then(() => {
         console.log("数据上传成功");
-        alert("数据上传成功");
+
         resolve();
       }).catch((error) => {
         console.error("数据上传失败:", error);
@@ -318,28 +324,36 @@
   }
 
   document.getElementById("submitBtn").addEventListener("click", async function(event) {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault(); // 阻止表单默认提交行为
 
-    if (!checkFields()) {  // 检查所有字段，如果有任何空字段，就中断提交操作
+    if (!checkFields()) {  // 如果字段检查不通过，则返回
       return;
     }
-    showLoading();
+
+    showLoading(); // 显示上传状态
 
     try {
       const postId = await getNewPostId();  // 获取新的postId
 
+      // 并行上传数据和图片
       await Promise.all([
         uploadData(postId),
-        ...Array.from(document.getElementById("images").files).map(file => uploadImage(file, postId))  // 确保使用相同的postId
+        ...Array.from(document.getElementById("images").files).map(file => uploadImage(file, postId))  // 使用相同的postId上传所有图片
       ]);
 
-      showFeedback("上传成功！", true);
-      resetForm();
+      // 上传成功后的操作
+      alert("数据上传成功"); // 弹出上传成功提示
+      hideLoading(); // 隐藏上传状态
+      resetForm(); // 重置表单
+      showFeedback("上传成功！", true); // 显示成功反馈信息
     } catch (error) {
-      showFeedback("上传失败，请重试。", false);
-      console.error("上传错误:", error);
+      // 上传失败后的操作
+      hideLoading(); // 隐藏上传状态
+      showFeedback("上传失败，请重试。", false); // 显示失败反馈信息
+      console.error("上传错误:", error); // 在控制台打印错误信息
     }
   });
+
 
   function checkFields() {
     // 获取所有需要检查的输入元素
@@ -376,6 +390,8 @@
     document.getElementById("title").value = '';
 
     document.getElementById("introduction").value = '';
+
+    document.getElementById("companyName").value = '';
 
     // 清空文件选择器
     document.getElementById("images").value = '';
