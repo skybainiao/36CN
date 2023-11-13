@@ -731,11 +731,14 @@
 
 
 
-    let currentPage = 1; // 当前页码
-    const postsPerPage = 6; // 每页显示的帖子数
-    let allPostsLoaded = false; // 标志，表示是否加载了所有帖子
-    let lastPostId = null; // 保存最后一个帖子的ID
-    let newLastPostId = null;
+    // Global variables
+    let currentPage = 1; // Current page number
+    const postsPerPage = 8; // Number of posts per page
+    let allPostsLoaded = false; // Flag to indicate if all posts have been loaded
+    let lastPostId = null; // Save the ID of the last post
+    let newLastPostId = null; // Save the ID for new posts loading
+
+
 
     function newLoadPosts() {
       if (allPostsLoaded) {
@@ -775,6 +778,9 @@
         if (postsToShow.length > 0) {
           // 更新newLastPostId为当前加载的帖子中最小的ID
           newLastPostId = postsToShow[postsToShow.length - 1].id;
+        } else {
+          // 如果没有足够的帖子填满一页，则标记为所有帖子已加载
+          allPostsLoaded = true;
         }
 
         // 处理帖子数据和图片URLs
@@ -803,19 +809,16 @@
     }
 
     function loadPosts() {
-      // 显示加载指示器
       document.getElementById('loading').style.display = 'block';
 
-      // 定义要加载的hangye类别数组
-      const targetCategories = ["创业企业", "投资机构", "电商战略", "电商工具"];
-
-      // 获取所有帖子并过滤出目标类别的帖子
-      database.ref('shopDetails').once('value', snapshot => {
+      // 获取所有帖子
+      database.ref('shopDetails').orderByKey().once('value').then(snapshot => {
         let posts = [];
         snapshot.forEach(childSnapshot => {
           let post = childSnapshot.val();
           post.id = childSnapshot.key;
-          if (targetCategories.includes(post.hangye)) {
+          // 过滤出特定类别的帖子
+          if (['创业企业', '投资机构', '电商战略', '电商工具'].includes(post.hangye)) {
             posts.push(post);
           }
         });
@@ -830,21 +833,23 @@
         // 按id降序排序帖子
         posts.sort((a, b) => b.id.localeCompare(a.id));
 
-        // 更新lastPostId为当前加载的帖子中最大的ID
-        lastPostId = posts[0].id;
-        // 更新newLastPostId为当前加载的帖子中最小的ID
-        newLastPostId = posts[posts.length - 1].id;
+        // 取排序后的前postsPerPage个帖子进行显示
+        let postsToShow = posts.slice(0, postsPerPage);
+        if (postsToShow.length > 0) {
+          // 更新lastPostId为当前加载的帖子中最大的ID
+          lastPostId = postsToShow[0].id;
+          // 更新newLastPostId为当前加载的帖子中最小的ID
+          newLastPostId = postsToShow[postsToShow.length - 1].id;
+        }
 
-        // 追加帖子到页面
-        processPosts(posts, true);
+        // 显示帖子
+        processPosts(postsToShow, true);
         document.getElementById('loading').style.display = 'none';
       }).catch(error => {
         console.error("Error fetching posts: ", error);
         document.getElementById('loading').style.display = 'none';
       });
     }
-
-
 
 
 
@@ -1007,6 +1012,8 @@
         newLoadPosts();
       }
     }, false);
+
+
 
 
 
