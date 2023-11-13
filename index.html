@@ -399,7 +399,7 @@
         <a href="html/post.html" class="transparent-blue-button" id="upload" style="text-decoration: none;width: 40%">发布💻</a>
       </div>
 
-      <!-- 导航栏 -->
+  <!-- 导航栏 -->
   <nav class="transparent-nav">
     <div class="dropdown">
       <button class="dropbtn" >创业咖啡</button>
@@ -416,15 +416,11 @@
       </div>
     </div>
 
-    <div class="dropdown">
-      <button class="dropbtn">活动展会</button>
-      <div class="dropdown-content">
-        <a href="#" data-category="国内">国内</a>
-        <a href="#" data-category="国外">国外</a>
-      </div>
-    </div>
+    <!-- 活动展会作为单独的按钮 -->
+    <button class="aa">活动展会</button>
 
   </nav>
+
 
 
   <!-- 分隔线 -->
@@ -473,7 +469,7 @@
 
     window.onload = function() {
       changeStatus();
-      loadPosts(currentPage, null); // 初始化为 null 类别
+      loadPosts(); // 初始化为 null 类别
     };
 
     function changeStatus() {
@@ -493,6 +489,52 @@
         });
       }
     }
+
+
+    function displayEventExhibitions() {
+      // 清空当前的grid items
+      const gridContainer = document.querySelector('.grid-container');
+      gridContainer.innerHTML = '';
+
+      // 在Firebase中搜索匹配的数据
+      let query = database.ref('shopDetails');
+      query.once('value', function(snapshot) {
+        let posts = snapshot.val();
+        let searchResults = {};
+        let fetchImageURLPromises = []; // 用于存储所有图片URL获取的promise
+
+        // 定义活动展会的hangye类别数组
+        const exhibitionCategories = ["文化娱乐", "消费电商", "汽车出行", "教育", "金融", "企业服务", "产业升级", "前沿技术", "医疗健康", "先进制造", "通信/半导体", "物联"];
+
+        for (let id in posts) {
+          let post = posts[id];
+          // 检查帖子的hangye是否属于活动展会类别
+          if (exhibitionCategories.includes(post.hangye)) {
+            post.id = id;
+            searchResults[id] = post;
+            // 获取图片的URL
+            let imageFolderPath = `shopImages/${id}/`;
+            let imageFolderRef = firebase.storage().ref(imageFolderPath);
+            let promise = imageFolderRef.listAll().then(result => {
+              if (result.items.length === 0) {
+                return null;
+              }
+              let randomImageRef = result.items[Math.floor(Math.random() * result.items.length)];
+              return randomImageRef.getDownloadURL();
+            });
+            fetchImageURLPromises.push(promise.then(url => { searchResults[id].imageURL = url; }));
+          }
+        }
+
+        // 等待所有图片URL的promise完成
+        Promise.all(fetchImageURLPromises).then(() => {
+          // 调用populatePosts函数来显示搜索结果
+          populatePosts(searchResults,null,1);
+        });
+      });
+    }
+
+    document.querySelector('.aa').addEventListener('click', displayEventExhibitions);
 
 
     // 获取最后三个帖子的数据并排序
@@ -583,6 +625,7 @@
 
     // 页面加载完成后，调用loadSwiperSlides函数
     document.addEventListener('DOMContentLoaded', loadSwiperSlides);
+
 
 
 
@@ -708,9 +751,12 @@
         snapshot.forEach((childSnapshot) => {
           let post = childSnapshot.val();
           post.id = childSnapshot.key;
-          // 只添加ID小于newLastPostId的帖子
-          if (!newLastPostId || post.id < newLastPostId) {
-            posts.push(post);
+          // 只添加特定分类的帖子
+          if (['创业企业', '投资机构', '电商战略', '电商工具'].includes(post.hangye)) {
+            // 只添加ID小于newLastPostId的帖子
+            if (!newLastPostId || post.id < newLastPostId) {
+              posts.push(post);
+            }
           }
         });
 
@@ -742,6 +788,7 @@
 
 
 
+
     function getCurrentPostId(callback) {
       database.ref('currentPostId').once('value').then((snapshot) => {
         const currentPostId = snapshot.val(); // 这里获取到的就是currentPostId的值
@@ -759,50 +806,45 @@
       // 显示加载指示器
       document.getElementById('loading').style.display = 'block';
 
-      // 获取currentPostId
-      getCurrentPostId((currentPostId) => {
-        // 确保currentPostId是一个字符串
-        if (typeof currentPostId === 'string') {
-          // 根据lastPostId加载帖子
-          let query = lastPostId
-            ? database.ref('shopDetails').orderByKey().startAfter(lastPostId).limitToFirst(postsPerPage)
-            : database.ref('shopDetails').orderByKey().endAt(currentPostId).limitToLast(postsPerPage);
+      // 定义要加载的hangye类别数组
+      const targetCategories = ["创业企业", "投资机构", "电商战略", "电商工具"];
 
-          query.once('value').then(snapshot => {
-            let posts = [];
-            snapshot.forEach((childSnapshot) => {
-              let post = childSnapshot.val();
-              post.id = childSnapshot.key;
-              posts.push(post);
-            });
+      // 获取所有帖子并过滤出目标类别的帖子
+      database.ref('shopDetails').once('value', snapshot => {
+        let posts = [];
+        snapshot.forEach(childSnapshot => {
+          let post = childSnapshot.val();
+          post.id = childSnapshot.key;
+          if (targetCategories.includes(post.hangye)) {
+            posts.push(post);
+          }
+        });
 
-            // 检查是否检索到新帖子
-            if (posts.length === 0) {
-              allPostsLoaded = true;
-              document.getElementById('loading').style.display = 'none';
-              return;
-            }
-
-            // 按id降序排序帖子
-            posts.sort((a, b) => b.id.localeCompare(a.id));
-
-            // 更新lastPostId和newLastPostId
-            lastPostId = posts[0].id; // 更新lastPostId为当前加载的帖子中最大的ID
-            newLastPostId = posts[posts.length - 1].id; // 更新newLastPostId为当前加载的帖子中最小的ID
-            console.log(lastPostId,newLastPostId);
-
-            processPosts(posts, true); // 追加帖子
-            document.getElementById('loading').style.display = 'none';
-          }).catch(error => {
-            console.error("Error fetching new posts: ", error);
-            document.getElementById('loading').style.display = 'none';
-          });
-        } else {
-          console.error("Invalid currentPostId: ", currentPostId);
+        // 如果没有检索到新帖子
+        if (posts.length === 0) {
+          allPostsLoaded = true;
           document.getElementById('loading').style.display = 'none';
+          return;
         }
+
+        // 按id降序排序帖子
+        posts.sort((a, b) => b.id.localeCompare(a.id));
+
+        // 更新lastPostId为当前加载的帖子中最大的ID
+        lastPostId = posts[0].id;
+        // 更新newLastPostId为当前加载的帖子中最小的ID
+        newLastPostId = posts[posts.length - 1].id;
+
+        // 追加帖子到页面
+        processPosts(posts, true);
+        document.getElementById('loading').style.display = 'none';
+      }).catch(error => {
+        console.error("Error fetching posts: ", error);
+        document.getElementById('loading').style.display = 'none';
       });
     }
+
+
 
 
 
@@ -839,7 +881,7 @@
 
 
     // Updated populatePosts function
-    function populatePosts(posts, append) {
+    function populatePosts(posts, append,bo) {
       let postArray = Object.values(posts);
 
       const gridContainer = document.querySelector('.grid-container');
@@ -849,6 +891,9 @@
         gridContainer.innerHTML = '';
       }
 
+      if (bo===1){
+        postArray.reverse();
+      }
 
       postArray.forEach((post, index) => {
         const gridItem = document.createElement('div');
